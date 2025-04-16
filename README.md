@@ -1,150 +1,207 @@
-# ChessSafari Discord Bot 🐘♟️
+# 🦁 Safari Buddy
 
-A custom Discord bot for managing the ChessSafari community with chess-jungle vibes and helpful commands! This bot uses FastAPI to provide a web interface in addition to Discord functionality.
+A high-quality Discord bot for the ChessSafari community, built using py-cord.
 
 ## 🌴 Features
 
-- **Custom Commands**:
-  - `!coach` - Sends information about chess coaching services
-  - `!discord` - Shares the Discord server invite link
-  - `!twitch` - Links to the Twitch channel for chess streams
-  - `!youtube` - Links to the YouTube channel for chess content
-  - `!insta` - Shares the Instagram profile
-  - `!live` - Announces when the stream is live on Twitch
+- **Slash Commands & Traditional Commands**
+  - `/coach` (or `!coach`): Get coaching information
+  - `/discord` (or `!discord`): Get invite link to the Discord server 
+  - `/twitch` (or `!twitch`): Get link to ChessSafari's Twitch channel
+  - `/youtube` (or `!youtube`): Get link to ChessSafari's YouTube channel
+  - `/instagram` (or `!instagram`): Get link to ChessSafari's Instagram
+  - `/status` (or `!status`): Check the bot's current status
+  - `/chessfact` (or `!chessfact`): Get a random chess fact
+  - `/puzzle` (or `!puzzle`): Get today's daily chess puzzle from Lichess
 
-- **Automatic Welcome Messages**:
-  - Sends a personalized welcome message in the `#welcome` channel when new members join
-  - Safari-themed emojis and friendly messages
+- **Auto-welcome New Members**
+  - Sends a fun welcome message in the `#welcome` channel
+  - Includes a custom safari-themed greeting with emoji branding
 
-- **Activity Logging**:
-  - Logs member joins, leaves, and deleted messages in a dedicated `#logs` channel
-  - Keeps track of server activity for moderation purposes
+- **Activity Logging**
+  - Logs joins, leaves, message deletes, and edits in `#mod-logs`
+  - Detailed logging with timestamps and user information
 
-- **Web API and Interface**:
-  - FastAPI integration for a web presence
-  - REST API endpoints to check bot status and control functions
-  - Web dashboard for basic monitoring
+- **Twitch Stream Notifications**
+  - Automatically detects when ChessSafari goes live on Twitch
+  - Posts an announcement in the `#live-now` channel with stream details
+  - Admin command `/go-live` to manually trigger stream notifications
 
-## 📋 Prerequisites
+- **Daily Chess Puzzles**
+  - Automatically posts the Lichess daily puzzle at a scheduled time
+  - Includes puzzle image, rating, and instructions
+  - Spoiler-free format with reaction-based solution reveal
+  - Manual `/puzzle` command to get today's puzzle on demand
+
+- **API Endpoint**
+  - Secure `/go-live` endpoint for triggering stream notifications from external tools
+  - `/status` endpoint to check the bot's status
+
+- **Fun Extras**
+  - Emoji reactions to chess and safari-themed keywords
+  - Chess facts command for random chess trivia
+
+## 📋 Requirements
 
 - Python 3.8 or higher
-- A Discord Bot Token (from the [Discord Developer Portal](https://discord.com/developers/applications))
-- Proper bot permissions and intents enabled
+- Discord Bot Token from the [Discord Developer Portal](https://discord.com/developers/applications)
+- Twitch API credentials (for stream notifications)
 
-## 🚀 Setup & Installation
+## 🛠️ Installation
 
-### 1. Clone the repository
+1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/chess-safari-bot.git
-cd chess-safari-bot
+git clone https://github.com/yourusername/safari-buddy.git
+cd safari-buddy
 ```
 
-### 2. Install dependencies
+2. **Install dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
+3. **Set up environment variables**
 
-Create a `.env` file in the root directory with the following content:
+Copy the example .env file and modify it with your own values:
 
-```
-# Discord Bot Token
-DISCORD_TOKEN=your_discord_bot_token_here
-
-# Links for Commands
-COACH_LINK=https://example.com/chess-coaching
-DISCORD_INVITE=https://discord.gg/yourinvite
-TWITCH_CHANNEL=https://twitch.tv/chesssafari
-YOUTUBE_CHANNEL=https://youtube.com/c/chesssafari
-INSTAGRAM_PROFILE=https://instagram.com/chesssafari
+```bash
+cp .env.example .env
 ```
 
-Replace the placeholders with your actual links and token.
+Then edit the `.env` file to add your:
+- Discord bot token
+- Twitch API credentials
+- Social media links
+- Other configuration options
 
-### 4. Enable required intents in Discord Developer Portal
+## 🚀 Running the Bot
 
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Select your application
-3. Go to the "Bot" section
-4. Under "Privileged Gateway Intents", enable:
-   - Server Members Intent
-   - Message Content Intent
-5. Save changes
-
-### 5. Run the bot
+### Local Hosting
 
 ```bash
 python main.py
 ```
 
-The bot will start running on Discord, and the FastAPI web server will be available at http://localhost:8000.
+### Hosting on Replit
 
-## 💻 Using the Web API
+1. Create a new Replit project and import your code
+2. Add your `.env` values in the Replit Secrets tab
+3. Set the run command to `python main.py`
 
-The bot includes a FastAPI web server with several endpoints:
+### Hosting on Railway
 
-- `GET /` - Homepage with bot information
-- `GET /status` - Check the bot's online status
-- `GET /servers` - List the servers the bot is in
-- `POST /go-live` - Trigger a stream notification (requires proper authentication)
+1. Connect your GitHub repository to Railway
+2. Add your `.env` variables in the Railway environment variables
+3. Railway will automatically deploy your bot
 
-You can access the web dashboard by navigating to http://localhost:8000 in your browser.
+## 🔧 Configuration
 
-## 🛠️ Customizing and Extending
+All bot configuration is done through environment variables in the `.env` file:
 
-### Adding New Commands
+### Discord Configuration
+- `DISCORD_TOKEN`: Your Discord bot token
+- `COMMAND_PREFIX`: Prefix for traditional commands (default: `!`)
 
-1. Open `bot/commands/general_commands.py` (or create a new commands file)
-2. Add a new command using the Discord.py command decorator format:
+### Social Links
+- `COACH_LINK`: Link to ChessSafari's coaching page
+- `DISCORD_LINK`: Discord invite link
+- `TWITCH_LINK`: Link to Twitch channel
+- `YOUTUBE_LINK`: Link to YouTube channel
+- `INSTAGRAM_LINK`: Link to Instagram profile
 
-```python
-@commands.command(name="command_name")
-async def your_command(self, ctx):
-    """Command description for help text"""
-    # Your command logic here
-    await ctx.send("Your response")
+### Twitch Configuration
+- `TWITCH_CLIENT_ID`: Your Twitch application client ID
+- `TWITCH_CLIENT_SECRET`: Your Twitch application client secret
+- `TWITCH_CHANNEL`: Twitch channel name to monitor
+- `ANNOUNCEMENT_CHANNEL`: Discord channel for live announcements
+
+### Daily Chess Puzzle Configuration
+- `PUZZLE_CHANNEL_ID`: The channel ID where daily puzzles will be posted
+- `PUZZLE_TIMEZONE`: The timezone for scheduling puzzle posts (default: "Africa/Johannesburg")
+- `PUZZLE_TIME`: The time of day to post puzzles in 24h format (default: "09:00")
+
+### API Configuration
+- `API_ENABLED`: Set to "true" to enable the API (default: "false")
+- `API_HOST`: Host to bind the API server to (default: "0.0.0.0")
+- `API_PORT`: Port for the API server (default: 8000)
+- `API_KEY`: Security key for API access
+
+## 🧩 Daily Chess Puzzles
+
+Safari Buddy can automatically post the Lichess daily puzzle to your Discord server:
+
+### Setup
+1. Create a dedicated channel for puzzles (e.g., `#daily-puzzle`)
+2. Get the channel ID by right-clicking the channel and selecting "Copy ID" (requires Developer Mode enabled)
+3. Add the channel ID to your `.env` file: `PUZZLE_CHANNEL_ID=your_channel_id_here`
+4. Set your desired timezone and time if different from the defaults
+
+### Usage
+- Puzzles will automatically post at the configured time each day
+- Users can use the `/puzzle` command to get today's puzzle on demand
+- To see the solution, users can click the 🔍 reaction
+- Solutions are posted as replies to maintain spoiler-free experience
+
+### Troubleshooting
+- If puzzles aren't posting, check that:
+  - Your `PUZZLE_CHANNEL_ID` is correct and the bot has permission to post in that channel
+  - The bot has permission to embed links and add reactions
+  - The timezone setting is correct for your location
+
+## 📡 API Usage
+
+When enabled, the bot provides a REST API that can be accessed:
+
+### Check Bot Status
+
+```
+GET /status
+Header: X-API-Key: your_api_key
 ```
 
-3. For more complex commands, use Discord embeds for better formatting
+### Trigger Live Notification
 
-### Modifying Welcome Messages
+```
+POST /go-live
+Header: X-API-Key: your_api_key
+Content-Type: application/json
 
-Edit the `bot/events/welcome_events.py` file to customize the welcome message format, content, and appearance.
+{
+  "title": "Chess Analysis with ChessSafari",
+  "game": "Chess",
+  "message": "Optional custom message"
+}
+```
 
-## 🌐 Deployment Options
+This endpoint allows OBS, Stream Deck, or other tools to trigger stream notifications.
 
-### Replit
+## 🔑 Permissions
 
-1. Create a new Replit project
-2. Upload your bot files or connect to your Git repository
-3. Add your `.env` variables in the Replit Secrets tab
-4. Set the "Run" command to `python main.py`
-5. Use Replit's Always On feature (or UptimeRobot) to keep your bot running
+To use the bot correctly, it needs the following permissions:
 
-### Railway
+- Read Messages/View Channels
+- Send Messages
+- Embed Links
+- Add Reactions
+- Use External Emojis
+- Read Message History
+- View Server Insights
 
-1. Create a new Railway project
-2. Connect your GitHub repository
-3. Add environment variables in the Railway dashboard
-4. Railway will automatically deploy your bot
-5. Railway provides enough free resources to keep your bot online
+## 📚 Extending the Bot
 
-### Hosting with FastAPI
+The bot uses a modular structure organized into cogs:
 
-To expose your bot's API to the internet safely, consider:
+- `commands/`: For user commands
+- `events/`: For bot event listeners
+- `utils/`: For utilities and API
 
-1. Using a reverse proxy like Nginx
-2. Adding proper authentication to API endpoints
-3. Setting up HTTPS with a service like Let's Encrypt
+To add new features, create new files in these directories. The bot will automatically load all .py files from these directories.
 
-## 📚 Resources
+## 🆘 Support
 
-- [Discord.py Documentation](https://discordpy.readthedocs.io/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Discord Developer Portal](https://discord.com/developers/applications)
+If you encounter any issues, please open an issue on GitHub or contact ChessSafari on Discord.
 
 ## 📜 License
 
@@ -152,4 +209,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-Built with 🧡 for the ChessSafari community
+Created with 🦁 for ChessSafari
