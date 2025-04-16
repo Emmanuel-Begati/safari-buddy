@@ -41,7 +41,7 @@ class GeneralCommands(commands.Cog):
             color=0x6441A4  # Twitch purple
         )
         embed.add_field(name="Channel Link", value=f"[Follow on Twitch]({config.TWITCH_CHANNEL})", inline=False)
-        embed.set_footer(text="🐯 Join the stream and let's play some chess! ��")
+        embed.set_footer(text="🐯 Join the stream and let's play some chess! 🐯")
         
         await ctx.send(embed=embed)
 
