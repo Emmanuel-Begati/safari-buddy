@@ -130,13 +130,34 @@ class ChessPuzzle(commands.Cog):
             return
         
         try:
-            # Extract puzzle information
-            puzzle_id = puzzle_data['puzzle']['id']
-            puzzle_fen = puzzle_data['puzzle']['fen']
-            puzzle_rating = puzzle_data['puzzle']['rating']
-            puzzle_plays = puzzle_data['puzzle']['plays']
-            puzzle_solution = puzzle_data['puzzle']['solution']
-            game_url = puzzle_data['game']['url']
+            # Extract puzzle information with error handling
+            if 'puzzle' not in puzzle_data:
+                logger.error(f"Unexpected puzzle data format: {puzzle_data}")
+                # Schedule a retry in 15 minutes
+                asyncio.create_task(self.retry_post_puzzle(15))
+                return
+                
+            puzzle = puzzle_data['puzzle']
+            puzzle_id = puzzle.get('id', 'Unknown')
+            
+            # Log the data structure for debugging
+            logger.debug(f"Daily puzzle data structure: {puzzle_data}")
+            
+            # Extract data with proper error handling
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_plays = puzzle.get('plays', 0)
+            puzzle_solution = puzzle.get('solution', [])
+            game_url = puzzle_data.get('game', {}).get('url', f"https://lichess.org/training/{puzzle_id}")
             
             # Create puzzle image URL
             puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
@@ -152,7 +173,10 @@ class ChessPuzzle(commands.Cog):
             embed.add_field(name="Rating", value=str(puzzle_rating), inline=True)
             embed.add_field(name="Played", value=f"{puzzle_plays} times", inline=True)
             embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
-            embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+            
+            if puzzle_fen and puzzle_fen != "FEN not available":
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
             embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
             embed.set_image(url=puzzle_image_url)
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
@@ -173,7 +197,7 @@ class ChessPuzzle(commands.Cog):
             
             logger.info(f"Posted daily puzzle {puzzle_id} to {channel.name}")
         except Exception as e:
-            logger.error(f"Error posting daily puzzle: {e}")
+            logger.error(f"Error posting daily puzzle: {e}", exc_info=True)
             # Schedule a retry in 15 minutes
             asyncio.create_task(self.retry_post_puzzle(15))
     
@@ -244,12 +268,34 @@ class ChessPuzzle(commands.Cog):
         
         # Post the puzzle (reusing same code as scheduled function)
         try:
-            # Extract puzzle information
-            puzzle_id = puzzle_data['puzzle']['id']
-            puzzle_fen = puzzle_data['puzzle']['fen']
-            puzzle_rating = puzzle_data['puzzle']['rating']
-            puzzle_plays = puzzle_data['puzzle']['plays']
-            puzzle_solution = puzzle_data['puzzle']['solution']
+            # Extract puzzle information with error handling
+            puzzle_id = puzzle_data.get('puzzle', {}).get('id', 'Unknown')
+            
+            # Debug the puzzle data structure
+            logger.debug(f"Puzzle data structure: {puzzle_data}")
+            
+            # Check if the puzzle data has the expected structure
+            if 'puzzle' not in puzzle_data:
+                await ctx.respond("❌ Received unexpected data format from Lichess API. Please try again later.")
+                logger.error(f"Unexpected puzzle data format: {puzzle_data}")
+                return
+            
+            # Extract data with proper error handling
+            puzzle = puzzle_data['puzzle']
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_plays = puzzle.get('plays', 0)
+            puzzle_solution = puzzle.get('solution', [])
+            game_url = puzzle_data.get('game', {}).get('url', f"https://lichess.org/training/{puzzle_id}")
             
             # Create puzzle image URL
             puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
@@ -265,7 +311,10 @@ class ChessPuzzle(commands.Cog):
             embed.add_field(name="Rating", value=str(puzzle_rating), inline=True)
             embed.add_field(name="Played", value=f"{puzzle_plays} times", inline=True)
             embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
-            embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+            
+            if puzzle_fen:
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
             embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
             embed.set_image(url=puzzle_image_url)
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
@@ -290,7 +339,7 @@ class ChessPuzzle(commands.Cog):
             
             logger.info(f"Posted puzzle {puzzle_id} via command")
         except Exception as e:
-            logger.error(f"Error posting puzzle via command: {e}")
+            logger.error(f"Error posting puzzle via command: {e}", exc_info=True)
             await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
     
     @discord.slash_command(name="puzzleid", description="Get a specific puzzle by ID from Lichess")
@@ -306,11 +355,30 @@ class ChessPuzzle(commands.Cog):
         
         # Post the puzzle with the same format as the daily puzzle
         try:
-            # Extract puzzle information
-            puzzle_fen = puzzle_data['puzzle']['fen']
-            puzzle_rating = puzzle_data['puzzle']['rating']
-            puzzle_plays = puzzle_data.get('puzzle', {}).get('plays', 0)
-            puzzle_solution = puzzle_data['puzzle']['solution']
+            # Log the data structure for debugging
+            logger.debug(f"Puzzle ID data structure: {puzzle_data}")
+            
+            # Check if the puzzle data has the expected structure
+            if 'puzzle' not in puzzle_data:
+                await ctx.respond(f"❌ Received unexpected data format from Lichess API for puzzle ID {puzzle_id}. Please try again later.")
+                logger.error(f"Unexpected puzzle data format for ID {puzzle_id}: {puzzle_data}")
+                return
+            
+            # Extract data with proper error handling
+            puzzle = puzzle_data['puzzle']
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_plays = puzzle.get('plays', 0)
+            puzzle_solution = puzzle.get('solution', [])
             
             # Create puzzle image URL
             puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
@@ -327,7 +395,10 @@ class ChessPuzzle(commands.Cog):
             if puzzle_plays:
                 embed.add_field(name="Played", value=f"{puzzle_plays} times", inline=True)
             embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
-            embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+            
+            if puzzle_fen and puzzle_fen != "FEN not available":
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
             embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
             embed.set_image(url=puzzle_image_url)
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
@@ -352,7 +423,7 @@ class ChessPuzzle(commands.Cog):
             
             logger.info(f"Posted puzzle {puzzle_id} via ID command")
         except Exception as e:
-            logger.error(f"Error posting puzzle via ID command: {e}")
+            logger.error(f"Error posting puzzle via ID command: {e}", exc_info=True)
             await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
     
     @discord.slash_command(name="randompuzzle", description="Get a random puzzle from Lichess")
@@ -378,11 +449,30 @@ class ChessPuzzle(commands.Cog):
         
         # Post the random puzzle with the same format as the daily puzzle
         try:
-            # Extract puzzle information
-            puzzle_id = puzzle_data['puzzle']['id']
-            puzzle_fen = puzzle_data['puzzle']['fen']
-            puzzle_rating = puzzle_data['puzzle']['rating']
-            puzzle_solution = puzzle_data['puzzle']['solution']
+            # Log the data structure for debugging
+            logger.debug(f"Random puzzle data structure: {puzzle_data}")
+            
+            # Check if the puzzle data has the expected structure
+            if 'puzzle' not in puzzle_data:
+                await ctx.respond("❌ Received unexpected data format from Lichess API. Please try again later.")
+                logger.error(f"Unexpected random puzzle data format: {puzzle_data}")
+                return
+            
+            # Extract data with proper error handling
+            puzzle = puzzle_data['puzzle']
+            puzzle_id = puzzle.get('id', 'Unknown')
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_solution = puzzle.get('solution', [])
             
             # Create puzzle image URL
             puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
@@ -398,7 +488,10 @@ class ChessPuzzle(commands.Cog):
             embed.add_field(name="Rating", value=str(puzzle_rating), inline=True)
             embed.add_field(name="Rating Range", value=f"{min_rating}-{max_rating}", inline=True)
             embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
-            embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+            
+            if puzzle_fen and puzzle_fen != "FEN not available":
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
             embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
             embed.set_image(url=puzzle_image_url)
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
@@ -423,7 +516,7 @@ class ChessPuzzle(commands.Cog):
             
             logger.info(f"Posted random puzzle {puzzle_id} with rating {puzzle_rating}")
         except Exception as e:
-            logger.error(f"Error posting random puzzle: {e}")
+            logger.error(f"Error posting random puzzle: {e}", exc_info=True)
             await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
     
     # Traditional prefix commands for compatibility

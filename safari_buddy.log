@@ -519,3 +519,123 @@ KeyboardInterrupt
 2025-04-16 07:04:37,545 - safari_buddy - INFO - Bot is ready!
 2025-04-16 07:04:48,652 - safari_buddy.reactions - ERROR - Error adding reaction: 403 Forbidden (error code: 50013): Missing Permissions
 2025-04-16 07:05:19,953 - safari_buddy.puzzle - ERROR - Error invoking puzzle slash command: Application Command raised an exception: AttributeError: 'Context' object has no attribute 'interaction'
+2025-04-16 07:13:27,361 - safari_buddy.puzzle - INFO - Successfully fetched daily puzzle: yFBmq
+2025-04-16 07:13:27,362 - safari_buddy.puzzle - ERROR - Error posting puzzle via command: 'fen'
+2025-04-16 07:13:36,775 - safari_buddy - INFO - Loaded command extension: general
+2025-04-16 07:13:36,778 - safari_buddy.twitch - WARNING - Twitch credentials not provided or are default values. Live notifications disabled.
+2025-04-16 07:13:36,778 - safari_buddy - INFO - Loaded event extension: twitch
+2025-04-16 07:13:36,778 - safari_buddy - INFO - Loaded event extension: logging
+2025-04-16 07:13:36,880 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 07:13:36,881 - apscheduler.scheduler - INFO - Added job "daily_puzzle" to job store "default"
+2025-04-16 07:13:36,881 - apscheduler.scheduler - INFO - Scheduler started
+2025-04-16 07:13:36,881 - safari_buddy.puzzle - INFO - Daily puzzle scheduler started, will post at 09:00 Africa/Johannesburg
+2025-04-16 07:13:36,882 - safari_buddy - INFO - Loaded event extension: puzzle
+2025-04-16 07:13:36,882 - safari_buddy - INFO - Loaded event extension: reactions
+2025-04-16 07:13:36,883 - safari_buddy - INFO - Loaded event extension: welcome
+2025-04-16 07:13:37,235 - safari_buddy.api - INFO - API server running at http://0.0.0.0:8000
+2025-04-16 07:13:37,235 - safari_buddy.api - INFO - API server started on 0.0.0.0:8000
+2025-04-16 07:13:37,235 - safari_buddy - INFO - Loaded API extension
+2025-04-16 07:13:37,235 - discord.client - INFO - logging in using static token
+2025-04-16 07:13:37,335 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<Server.serve() done, defined at /home/begati/anaconda3/lib/python3.12/site-packages/uvicorn/server.py:63> exception=SystemExit(1)>
+Traceback (most recent call last):
+  File "/home/begati/anaconda3/lib/python3.12/site-packages/uvicorn/server.py", line 160, in startup
+    server = await loop.create_server(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/base_events.py", line 1571, in create_server
+    raise OSError(err.errno, msg) from None
+OSError: [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): [errno 98] address already in use
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/begati/Desktop/safari-buddy/main.py", line 86, in <module>
+    asyncio.run(main())
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/base_events.py", line 674, in run_until_complete
+    self.run_forever()
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/base_events.py", line 641, in run_forever
+    self._run_once()
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/base_events.py", line 1986, in _run_once
+    handle._run()
+  File "/home/begati/anaconda3/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "/home/begati/anaconda3/lib/python3.12/site-packages/uvicorn/server.py", line 78, in serve
+    await self.startup(sockets=sockets)
+  File "/home/begati/anaconda3/lib/python3.12/site-packages/uvicorn/server.py", line 170, in startup
+    sys.exit(1)
+SystemExit: 1
+2025-04-16 07:16:20,011 - safari_buddy - INFO - Loaded command extension: general
+2025-04-16 07:16:20,013 - safari_buddy.twitch - WARNING - Twitch credentials not provided or are default values. Live notifications disabled.
+2025-04-16 07:16:20,014 - safari_buddy - INFO - Loaded event extension: twitch
+2025-04-16 07:16:20,014 - safari_buddy - INFO - Loaded event extension: logging
+2025-04-16 07:16:20,114 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 07:16:20,115 - apscheduler.scheduler - INFO - Added job "daily_puzzle" to job store "default"
+2025-04-16 07:16:20,115 - apscheduler.scheduler - INFO - Scheduler started
+2025-04-16 07:16:20,115 - safari_buddy.puzzle - INFO - Daily puzzle scheduler started, will post at 09:00 Africa/Johannesburg
+2025-04-16 07:16:20,115 - safari_buddy - INFO - Loaded event extension: puzzle
+2025-04-16 07:16:20,116 - safari_buddy - INFO - Loaded event extension: reactions
+2025-04-16 07:16:20,117 - safari_buddy - INFO - Loaded event extension: welcome
+2025-04-16 07:16:20,487 - safari_buddy.api - INFO - API server running at http://0.0.0.0:8000
+2025-04-16 07:16:20,487 - safari_buddy.api - INFO - API server started on 0.0.0.0:8000
+2025-04-16 07:16:20,487 - safari_buddy - INFO - Loaded API extension
+2025-04-16 07:16:20,487 - discord.client - INFO - logging in using static token
+2025-04-16 07:16:21,484 - discord.gateway - INFO - Shard ID None has sent the IDENTIFY payload.
+2025-04-16 07:16:21,818 - discord.gateway - INFO - Shard ID None has connected to Gateway: ["gateway-prd-us-east1-b-0wcc",{"micros":113684,"calls":["id_created",{"micros":319,"calls":[]},"session_lookup_time",{"micros":3693,"calls":[]},"session_lookup_finished",{"micros":11,"calls":[]},"discord-sessions-prd-2-97",{"micros":108546,"calls":["start_session",{"micros":61131,"calls":["discord-api-prd-canary-rpc-6d7d8fb567-k5gvb",{"micros":53416,"calls":["get_user",{"micros":8303},"get_guilds",{"micros":9328},"send_scheduled_deletion_message",{"micros":4},"guild_join_requests",{"micros":0},"authorized_ip_coro",{"micros":9},"pending_payments",{"micros":663},"apex_user_experiments",{"micros":2}]}]},"starting_guild_connect",{"micros":47,"calls":[]},"presence_started",{"micros":14384,"calls":[]},"guilds_started",{"micros":59,"calls":[]},"lobbies_started",{"micros":1,"calls":[]},"guilds_connect",{"micros":0,"calls":[]},"presence_connect",{"micros":32890,"calls":[]},"connect_finished",{"micros":32893,"calls":[]},"build_ready",{"micros":28,"calls":[]},"clean_ready",{"micros":1,"calls":[]},"optimize_ready",{"micros":0,"calls":[]},"split_ready",{"micros":0,"calls":[]}]}]}] (Session ID: f5eeb194bdfa8ff11e6b91bc22264dc7).
+2025-04-16 07:16:23,824 - safari_buddy - INFO - Logged in as safari-buddy (1361879071885361194)
+2025-04-16 07:16:23,825 - safari_buddy.api - INFO - API is available at http://0.0.0.0:8000
+2025-04-16 07:16:24,673 - safari_buddy - INFO - Command sync completed, but no commands were returned
+2025-04-16 07:16:24,673 - safari_buddy - INFO - Bot is ready!
+2025-04-16 07:16:49,968 - safari_buddy.puzzle - INFO - Successfully fetched daily puzzle: yFBmq
+2025-04-16 07:16:49,969 - safari_buddy.puzzle - ERROR - Error posting puzzle via command: 'fen'
+2025-04-16 07:17:28,688 - safari_buddy.puzzle - ERROR - Failed to fetch random puzzle. Status: 404
+2025-04-16 07:25:11,076 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2025-04-16 07:25:11,081 - safari_buddy - INFO - Loaded command extension: general
+2025-04-16 07:25:11,085 - safari_buddy.twitch - WARNING - Twitch credentials not provided or are default values. Live notifications disabled.
+2025-04-16 07:25:11,086 - safari_buddy - INFO - Loaded event extension: twitch
+2025-04-16 07:25:11,086 - safari_buddy - INFO - Loaded event extension: logging
+2025-04-16 07:25:11,122 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 07:25:11,123 - apscheduler.scheduler - INFO - Added job "daily_puzzle" to job store "default"
+2025-04-16 07:25:11,123 - apscheduler.scheduler - INFO - Scheduler started
+2025-04-16 07:25:11,124 - safari_buddy.puzzle - INFO - Daily puzzle scheduler started, will post at 09:00 Africa/Johannesburg
+2025-04-16 07:25:11,124 - safari_buddy - INFO - Loaded event extension: puzzle
+2025-04-16 07:25:11,125 - safari_buddy - INFO - Loaded event extension: reactions
+2025-04-16 07:25:11,125 - safari_buddy - INFO - Loaded event extension: welcome
+2025-04-16 07:25:11,415 - safari_buddy.api - INFO - API server running at http://0.0.0.0:8000
+2025-04-16 07:25:11,415 - safari_buddy.api - INFO - API server started on 0.0.0.0:8000
+2025-04-16 07:25:11,415 - safari_buddy - INFO - Loaded API extension
+2025-04-16 07:25:11,415 - discord.client - INFO - logging in using static token
+2025-04-16 07:25:12,349 - discord.gateway - INFO - Shard ID None has sent the IDENTIFY payload.
+2025-04-16 07:25:12,682 - discord.gateway - INFO - Shard ID None has connected to Gateway: ["gateway-prd-us-east1-b-5x01",{"micros":109305,"calls":["id_created",{"micros":318,"calls":[]},"session_lookup_time",{"micros":249,"calls":[]},"session_lookup_finished",{"micros":12,"calls":[]},"discord-sessions-prd-2-73",{"micros":108396,"calls":["start_session",{"micros":70001,"calls":["discord-api-rpc-798fcb9cdd-qx9pm",{"micros":57400,"calls":["get_user",{"micros":18435},"get_guilds",{"micros":3190},"send_scheduled_deletion_message",{"micros":5},"guild_join_requests",{"micros":0},"authorized_ip_coro",{"micros":6},"pending_payments",{"micros":550},"apex_user_experiments",{"micros":1}]}]},"starting_guild_connect",{"micros":58,"calls":[]},"presence_started",{"micros":11287,"calls":[]},"guilds_started",{"micros":69,"calls":[]},"lobbies_started",{"micros":1,"calls":[]},"guilds_connect",{"micros":1,"calls":[]},"presence_connect",{"micros":26945,"calls":[]},"connect_finished",{"micros":26948,"calls":[]},"build_ready",{"micros":30,"calls":[]},"clean_ready",{"micros":0,"calls":[]},"optimize_ready",{"micros":0,"calls":[]},"split_ready",{"micros":1,"calls":[]}]}]}] (Session ID: d6fd586895ec2d12b3d2cee5841bdaa0).
+2025-04-16 07:25:14,686 - safari_buddy - INFO - Logged in as safari-buddy (1361879071885361194)
+2025-04-16 07:25:14,688 - safari_buddy.api - INFO - API is available at http://0.0.0.0:8000
+2025-04-16 07:25:15,568 - safari_buddy - INFO - Command sync completed, but no commands were returned
+2025-04-16 07:25:15,578 - safari_buddy - INFO - Bot is ready!
+2025-04-16 07:25:28,570 - safari_buddy - INFO - Bot shutdown initiated by user
+2025-04-16 07:25:28,589 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<Server.serve() done, defined at /home/begati/Desktop/safari-buddy/.venv/lib/python3.10/site-packages/uvicorn/server.py:68> exception=KeyboardInterrupt()>
+Traceback (most recent call last):
+  File "/home/begati/Desktop/safari-buddy/main.py", line 86, in <module>
+    asyncio.run(main())
+  File "/usr/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 636, in run_until_complete
+    self.run_forever()
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 603, in run_forever
+    self._run_once()
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 1909, in _run_once
+    handle._run()
+  File "/usr/lib/python3.10/asyncio/events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "/home/begati/Desktop/safari-buddy/.venv/lib/python3.10/site-packages/uvicorn/server.py", line 69, in serve
+    with self.capture_signals():
+  File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+    next(self.gen)
+  File "/home/begati/Desktop/safari-buddy/.venv/lib/python3.10/site-packages/uvicorn/server.py", line 330, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
