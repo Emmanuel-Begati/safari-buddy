@@ -23,7 +23,7 @@ class ChessPuzzle(commands.Cog):
         self.puzzle_channel_id = os.getenv('PUZZLE_CHANNEL_ID')
         self.scheduler = AsyncIOScheduler()
         self.puzzle_timezone = os.getenv('PUZZLE_TIMEZONE', 'Africa/Johannesburg')  # CAT timezone by default
-        self.puzzle_time = os.getenv('PUZZLE_TIME', '09:00')  # Default to 9AM
+        self.puzzle_time = os.getenv('PUZZLE_TIME', '08:06')  # Default to 9AM
         
         # Store API base URL
         self.lichess_api_base = "https://lichess.org/api"
@@ -56,8 +56,16 @@ class ChessPuzzle(commands.Cog):
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
                         data = await response.json()
-                        logger.info(f"Successfully fetched daily puzzle: {data['puzzle']['id']}")
-                        return data
+                        # Log the entire response for debugging
+                        logger.debug(f"Daily puzzle response: {data}")
+                        
+                        # Check if we have puzzle data with ID
+                        if 'puzzle' in data and 'id' in data['puzzle']:
+                            logger.info(f"Successfully fetched daily puzzle: {data['puzzle']['id']}")
+                            return data
+                        else:
+                            logger.error(f"Puzzle data structure is unexpected: {data}")
+                            return None
                     else:
                         logger.error(f"Failed to fetch daily puzzle. Status: {response.status}")
                         return None
@@ -75,8 +83,16 @@ class ChessPuzzle(commands.Cog):
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
                         data = await response.json()
-                        logger.info(f"Successfully fetched puzzle by ID: {puzzle_id}")
-                        return data
+                        # Log the entire response for debugging
+                        logger.debug(f"Puzzle by ID response: {data}")
+                        
+                        # Check if we have puzzle data
+                        if 'puzzle' in data:
+                            logger.info(f"Successfully fetched puzzle by ID: {puzzle_id}")
+                            return data
+                        else:
+                            logger.error(f"Puzzle data structure is unexpected for ID {puzzle_id}: {data}")
+                            return None
                     else:
                         logger.error(f"Failed to fetch puzzle by ID {puzzle_id}. Status: {response.status}")
                         return None
@@ -95,8 +111,16 @@ class ChessPuzzle(commands.Cog):
                 async with session.get(url, headers=headers, params=params) as response:
                     if response.status == 200:
                         data = await response.json()
-                        logger.info(f"Successfully fetched random puzzle: {data['puzzle']['id']}")
-                        return data
+                        # Log the entire response for debugging
+                        logger.debug(f"Random puzzle response: {data}")
+                        
+                        # Check if we have puzzle data with ID
+                        if 'puzzle' in data and 'id' in data['puzzle']:
+                            logger.info(f"Successfully fetched random puzzle: {data['puzzle']['id']}")
+                            return data
+                        else:
+                            logger.error(f"Random puzzle data structure is unexpected: {data}")
+                            return None
                     else:
                         logger.error(f"Failed to fetch random puzzle. Status: {response.status}")
                         return None
@@ -257,17 +281,20 @@ class ChessPuzzle(commands.Cog):
     
     @discord.slash_command(name="puzzle", description="Get today's daily chess puzzle from Lichess")
     async def puzzle_slash(self, ctx):
-        """Slash command to manually fetch and post today's puzzle."""
-        await ctx.defer()  # This might take a moment
-        
-        # Fetch the puzzle
-        puzzle_data = await self.fetch_daily_puzzle()
-        if not puzzle_data:
-            await ctx.respond("❌ Failed to fetch today's puzzle from Lichess. Please try again later.")
-            return
-        
-        # Post the puzzle (reusing same code as scheduled function)
+        # Only defer if this is an interaction (slash command)
+        if hasattr(ctx, "defer") and callable(ctx.defer):
+            try:
+                await ctx.defer()
+            except Exception:
+                pass  # Ignore if already responded or can't defer
         try:
+            # Fetch the puzzle
+            puzzle_data = await self.fetch_daily_puzzle()
+            if not puzzle_data:
+                await ctx.respond("❌ Failed to fetch today's puzzle from Lichess. Please try again later.")
+                return
+            
+            # Post the puzzle (reusing same code as scheduled function)
             # Extract puzzle information with error handling
             puzzle_id = puzzle_data.get('puzzle', {}).get('id', 'Unknown')
             
@@ -276,7 +303,7 @@ class ChessPuzzle(commands.Cog):
             
             # Check if the puzzle data has the expected structure
             if 'puzzle' not in puzzle_data:
-                await ctx.respond("❌ Received unexpected data format from Lichess API. Please try again later.")
+                await ctx.followup.send("❌ Received unexpected data format from Lichess API. Please try again later.")
                 logger.error(f"Unexpected puzzle data format: {puzzle_data}")
                 return
             
@@ -319,12 +346,8 @@ class ChessPuzzle(commands.Cog):
             embed.set_image(url=puzzle_image_url)
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
             
-            # Send the message
-            message = await ctx.respond(embed=embed)
-            
-            # Get the actual message object to add a reaction
-            if isinstance(message, discord.Interaction):
-                message = await message.original_response()
+            # Send the message using followup since we deferred earlier
+            message = await ctx.followup.send(embed=embed)
             
             # Add reaction for solution
             await message.add_reaction("🔍")
@@ -340,17 +363,22 @@ class ChessPuzzle(commands.Cog):
             logger.info(f"Posted puzzle {puzzle_id} via command")
         except Exception as e:
             logger.error(f"Error posting puzzle via command: {e}", exc_info=True)
-            await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
+            # Use followup for error message since we deferred earlier
+            try:
+                await ctx.followup.send("❌ An error occurred while posting the puzzle. Please try again later.")
+            except:
+                logger.error("Failed to send error message to user")
     
     @discord.slash_command(name="puzzleid", description="Get a specific puzzle by ID from Lichess")
     async def puzzle_id_slash(self, ctx, puzzle_id: discord.Option(str, "Lichess puzzle ID", required=True)):
         """Slash command to fetch and post a specific puzzle by ID."""
-        await ctx.defer()  # This might take a moment
+        # Defer first to give us time to fetch the puzzle
+        await ctx.defer()
         
         # Fetch the puzzle by ID
         puzzle_data = await self.fetch_puzzle_by_id(puzzle_id)
         if not puzzle_data:
-            await ctx.respond(f"❌ Failed to fetch puzzle with ID `{puzzle_id}` from Lichess. Please check the ID and try again.")
+            await ctx.followup.send(f"❌ Failed to fetch puzzle with ID `{puzzle_id}` from Lichess. Please check the ID and try again.")
             return
         
         # Post the puzzle with the same format as the daily puzzle
@@ -360,7 +388,210 @@ class ChessPuzzle(commands.Cog):
             
             # Check if the puzzle data has the expected structure
             if 'puzzle' not in puzzle_data:
-                await ctx.respond(f"❌ Received unexpected data format from Lichess API for puzzle ID {puzzle_id}. Please try again later.")
+                await ctx.followup.send(f"❌ Received unexpected data format from Lichess API for puzzle ID {puzzle_id}. Please try again later.")
+                logger.error(f"Unexpected puzzle data format for ID {puzzle_id}: {puzzle_data}")
+                return
+            
+            # Extract data with proper error handling
+            puzzle = puzzle_data['puzzle']
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_plays = puzzle.get('plays', 0)
+            puzzle_solution = puzzle.get('solution', [])
+            
+            # Create puzzle image URL
+            puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
+            
+            # Create the embed
+            embed = discord.Embed(
+                title=f"🧩 Chess Puzzle {puzzle_id}",
+                description="Test your skills with this chess puzzle from Lichess!",
+                color=discord.Color.gold(),
+                url=f"https://lichess.org/training/{puzzle_id}"
+            )
+            
+            embed.add_field(name="Rating", value=str(puzzle_rating), inline=True)
+            if puzzle_plays:
+                embed.add_field(name="Played", value=f"{puzzle_plays} times", inline=True)
+            embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
+            
+            if puzzle_fen and puzzle_fen != "FEN not available":
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
+            embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
+            embed.set_image(url=puzzle_image_url)
+            embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
+            
+            # Send the message using followup since we deferred earlier
+            message = await ctx.followup.send(embed=embed)
+            
+            # Add reaction for solution
+            await message.add_reaction("🔍")
+            
+            # Store the solution for later
+            self.bot.puzzle_solutions = getattr(self.bot, "puzzle_solutions", {})
+            self.bot.puzzle_solutions[message.id] = {
+                "solution": puzzle_solution, 
+                "puzzle_id": puzzle_id,
+                "timestamp": datetime.now().timestamp()
+            }
+            
+            logger.info(f"Posted puzzle {puzzle_id} via ID command")
+        except Exception as e:
+            logger.error(f"Error posting puzzle via ID command: {e}", exc_info=True)
+            # Use followup for error since we deferred earlier
+            try:
+                await ctx.followup.send("❌ An error occurred while posting the puzzle. Please try again later.")
+            except:
+                logger.error("Failed to send error message to user")
+    
+    @discord.slash_command(name="randompuzzle", description="Get a random puzzle from Lichess")
+    async def random_puzzle_slash(self, ctx, 
+                                  min_rating: discord.Option(int, "Minimum rating", required=False, default=1500),
+                                  max_rating: discord.Option(int, "Maximum rating", required=False, default=2000)):
+        """Slash command to fetch and post a random puzzle within a rating range."""
+        # Defer first to give us time to fetch the puzzle
+        await ctx.defer()
+        
+        # Validate rating range
+        if min_rating < 600 or min_rating > 3000:
+            min_rating = 1500
+        if max_rating < 600 or max_rating > 3000 or max_rating < min_rating:
+            max_rating = min_rating + 500
+            if max_rating > 3000:
+                max_rating = 3000
+        
+        # Fetch a random puzzle
+        puzzle_data = await self.fetch_random_puzzle(min_rating, max_rating)
+        if not puzzle_data:
+            await ctx.followup.send("❌ Failed to fetch a random puzzle from Lichess. Please try again later.")
+            return
+        
+        # Post the random puzzle with the same format as the daily puzzle
+        try:
+            # Log the data structure for debugging
+            logger.debug(f"Random puzzle data structure: {puzzle_data}")
+            
+            # Check if the puzzle data has the expected structure
+            if 'puzzle' not in puzzle_data:
+                await ctx.followup.send("❌ Received unexpected data format from Lichess API. Please try again later.")
+                logger.error(f"Unexpected random puzzle data format: {puzzle_data}")
+                return
+            
+            # Extract data with proper error handling
+            puzzle = puzzle_data['puzzle']
+            puzzle_id = puzzle.get('id', 'Unknown')
+            puzzle_fen = puzzle.get('fen')
+            
+            if not puzzle_fen:
+                # Try alternative field names or structure
+                if 'game' in puzzle_data and 'fen' in puzzle_data['game']:
+                    puzzle_fen = puzzle_data['game']['fen']
+                else:
+                    # Use a default message if FEN is not available
+                    puzzle_fen = "FEN not available"
+            
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_solution = puzzle.get('solution', [])
+            
+            # Create puzzle image URL
+            puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
+            
+            # Create the embed
+            embed = discord.Embed(
+                title=f"🧩 Random Chess Puzzle (Rating: {puzzle_rating})",
+                description=f"Test your skills with this random puzzle from Lichess!",
+                color=discord.Color.gold(),
+                url=f"https://lichess.org/training/{puzzle_id}"
+            )
+            
+            embed.add_field(name="Rating", value=str(puzzle_rating), inline=True)
+            embed.add_field(name="Rating Range", value=f"{min_rating}-{max_rating}", inline=True)
+            embed.add_field(name="Puzzle ID", value=f"`{puzzle_id}`", inline=True)
+            
+            if puzzle_fen and puzzle_fen != "FEN not available":
+                embed.add_field(name="Position (FEN)", value=f"`{puzzle_fen}`", inline=False)
+                
+            embed.add_field(name="Instructions", value="Find the best move sequence! Click the link in the title to solve on Lichess. React with 🔍 to reveal the solution.", inline=False)
+            embed.set_image(url=puzzle_image_url)
+            embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
+            
+            # Send the message using followup since we deferred earlier
+            message = await ctx.followup.send(embed=embed)
+            
+            # Add reaction for solution
+            await message.add_reaction("🔍")
+            
+            # Store the solution for later
+            self.bot.puzzle_solutions = getattr(self.bot, "puzzle_solutions", {})
+            self.bot.puzzle_solutions[message.id] = {
+                "solution": puzzle_solution, 
+                "puzzle_id": puzzle_id,
+                "timestamp": datetime.now().timestamp()
+            }
+            
+            logger.info(f"Posted random puzzle {puzzle_id} with rating {puzzle_rating}")
+        except Exception as e:
+            logger.error(f"Error posting random puzzle: {e}", exc_info=True)
+            # Use followup for error since we deferred earlier
+            try:
+                await ctx.followup.send("❌ An error occurred while posting the puzzle. Please try again later.")
+            except:
+                logger.error("Failed to send error message to user")
+    
+    # Traditional prefix commands for compatibility
+    @commands.command(name="puzzle")
+    async def puzzle_prefix(self, ctx):
+        """Traditional command to manually fetch and post today's puzzle."""
+        # Do NOT call the slash command handler directly
+        try:
+            puzzle_data = await self.fetch_daily_puzzle()
+            if not puzzle_data:
+                await ctx.send("❌ Failed to fetch today's puzzle from Lichess. Please try again later.")
+                return
+            if 'puzzle' not in puzzle_data:
+                await ctx.send("❌ Received unexpected data format from Lichess API. Please try again later.")
+                logger.error(f"Unexpected puzzle data format: {puzzle_data}")
+                return
+            puzzle = puzzle_data['puzzle']
+            puzzle_id = puzzle.get('id', 'Unknown')
+            puzzle_rating = puzzle.get('rating', 'Unknown')
+            puzzle_image_url = f"https://lichess1.org/game/export/gif/puzzle/{puzzle_id}.gif"
+            await ctx.send(f"🧩 **Today's Chess Puzzle**\nRating: {puzzle_rating}\nPuzzle ID: `{puzzle_id}`\nSolve: https://lichess.org/training/{puzzle_id}\n{puzzle_image_url}")
+        except Exception as e:
+            logger.error(f"Error posting puzzle via prefix command: {e}")
+            await ctx.send("❌ An error occurred while posting the puzzle. Please try again later.")
+    
+    @commands.command(name="puzzleid")
+    async def puzzle_id_prefix(self, ctx, puzzle_id: str = None):
+        """Traditional command to fetch and post a specific puzzle by ID."""
+        if not puzzle_id:
+            await ctx.send("⚠️ Please provide a puzzle ID. Example: `!puzzleid 12345`")
+            return
+        
+        try:
+            # Fetch the puzzle by ID
+            puzzle_data = await self.fetch_puzzle_by_id(puzzle_id)
+            if not puzzle_data:
+                await ctx.send(f"❌ Failed to fetch puzzle with ID `{puzzle_id}` from Lichess. Please check the ID and try again.")
+                return
+            
+            # Post the puzzle with the same format as the daily puzzle
+            # Log the data structure for debugging
+            logger.debug(f"Puzzle ID data structure: {puzzle_data}")
+            
+            # Check if the puzzle data has the expected structure
+            if 'puzzle' not in puzzle_data:
+                await ctx.send(f"❌ Received unexpected data format from Lichess API for puzzle ID {puzzle_id}. Please try again later.")
                 logger.error(f"Unexpected puzzle data format for ID {puzzle_id}: {puzzle_data}")
                 return
             
@@ -404,11 +635,7 @@ class ChessPuzzle(commands.Cog):
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
             
             # Send the message
-            message = await ctx.respond(embed=embed)
-            
-            # Get the actual message object to add a reaction
-            if isinstance(message, discord.Interaction):
-                message = await message.original_response()
+            message = await ctx.send(embed=embed)
             
             # Add reaction for solution
             await message.add_reaction("🔍")
@@ -424,37 +651,33 @@ class ChessPuzzle(commands.Cog):
             logger.info(f"Posted puzzle {puzzle_id} via ID command")
         except Exception as e:
             logger.error(f"Error posting puzzle via ID command: {e}", exc_info=True)
-            await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
+            await ctx.send("❌ An error occurred while posting the puzzle. Please try again later.")
     
-    @discord.slash_command(name="randompuzzle", description="Get a random puzzle from Lichess")
-    async def random_puzzle_slash(self, ctx, 
-                                  min_rating: discord.Option(int, "Minimum rating", required=False, default=1500),
-                                  max_rating: discord.Option(int, "Maximum rating", required=False, default=2000)):
-        """Slash command to fetch and post a random puzzle within a rating range."""
-        await ctx.defer()  # This might take a moment
-        
-        # Validate rating range
-        if min_rating < 600 or min_rating > 3000:
-            min_rating = 1500
-        if max_rating < 600 or max_rating > 3000 or max_rating < min_rating:
-            max_rating = min_rating + 500
-            if max_rating > 3000:
-                max_rating = 3000
-        
-        # Fetch a random puzzle
-        puzzle_data = await self.fetch_random_puzzle(min_rating, max_rating)
-        if not puzzle_data:
-            await ctx.respond("❌ Failed to fetch a random puzzle from Lichess. Please try again later.")
-            return
-        
-        # Post the random puzzle with the same format as the daily puzzle
+    @commands.command(name="randompuzzle")
+    async def random_puzzle_prefix(self, ctx, min_rating: int = 1500, max_rating: int = 2000):
+        """Traditional command to fetch and post a random puzzle within a rating range."""
         try:
+            # Validate rating range
+            if min_rating < 600 or min_rating > 3000:
+                min_rating = 1500
+            if max_rating < 600 or max_rating > 3000 or max_rating < min_rating:
+                max_rating = min_rating + 500
+                if max_rating > 3000:
+                    max_rating = 3000
+            
+            # Fetch a random puzzle
+            puzzle_data = await self.fetch_random_puzzle(min_rating, max_rating)
+            if not puzzle_data:
+                await ctx.send("❌ Failed to fetch a random puzzle from Lichess. Please try again later.")
+                return
+            
+            # Post the random puzzle with the same format as the daily puzzle
             # Log the data structure for debugging
             logger.debug(f"Random puzzle data structure: {puzzle_data}")
             
             # Check if the puzzle data has the expected structure
             if 'puzzle' not in puzzle_data:
-                await ctx.respond("❌ Received unexpected data format from Lichess API. Please try again later.")
+                await ctx.send("❌ Received unexpected data format from Lichess API. Please try again later.")
                 logger.error(f"Unexpected random puzzle data format: {puzzle_data}")
                 return
             
@@ -497,11 +720,7 @@ class ChessPuzzle(commands.Cog):
             embed.set_footer(text=f"Puzzle ID: {puzzle_id} • From a game played on Lichess")
             
             # Send the message
-            message = await ctx.respond(embed=embed)
-            
-            # Get the actual message object to add a reaction
-            if isinstance(message, discord.Interaction):
-                message = await message.original_response()
+            message = await ctx.send(embed=embed)
             
             # Add reaction for solution
             await message.add_reaction("🔍")
@@ -517,40 +736,6 @@ class ChessPuzzle(commands.Cog):
             logger.info(f"Posted random puzzle {puzzle_id} with rating {puzzle_rating}")
         except Exception as e:
             logger.error(f"Error posting random puzzle: {e}", exc_info=True)
-            await ctx.respond("❌ An error occurred while posting the puzzle. Please try again later.")
-    
-    # Traditional prefix commands for compatibility
-    @commands.command(name="puzzle")
-    async def puzzle_prefix(self, ctx):
-        """Traditional command to manually fetch and post today's puzzle."""
-        try:
-            await self.puzzle_slash.invoke(ctx)
-        except Exception as e:
-            logger.error(f"Error invoking puzzle slash command: {e}")
-            await ctx.send("❌ An error occurred while posting the puzzle. Please try again later.")
-    
-    @commands.command(name="puzzleid")
-    async def puzzle_id_prefix(self, ctx, puzzle_id: str = None):
-        """Traditional command to fetch and post a specific puzzle by ID."""
-        if not puzzle_id:
-            await ctx.send("⚠️ Please provide a puzzle ID. Example: `!puzzleid 12345`")
-            return
-        
-        try:
-            # Create a mock context that simulates the slash command
-            await self.puzzle_id_slash.invoke(ctx, puzzle_id=puzzle_id)
-        except Exception as e:
-            logger.error(f"Error invoking puzzle ID slash command: {e}")
-            await ctx.send("❌ An error occurred while posting the puzzle. Please try again later.")
-    
-    @commands.command(name="randompuzzle")
-    async def random_puzzle_prefix(self, ctx, min_rating: int = 1500, max_rating: int = 2000):
-        """Traditional command to fetch and post a random puzzle within a rating range."""
-        try:
-            # Create a mock context that simulates the slash command
-            await self.random_puzzle_slash.invoke(ctx, min_rating=min_rating, max_rating=max_rating)
-        except Exception as e:
-            logger.error(f"Error invoking random puzzle slash command: {e}")
             await ctx.send("❌ An error occurred while posting the puzzle. Please try again later.")
 
 def setup(bot):

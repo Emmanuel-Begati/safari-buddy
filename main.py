@@ -57,12 +57,14 @@ async def load_extensions():
     # Load command cogs
     for filename in os.listdir('./commands'):
         if filename.endswith('.py'):
+            # bot.load_extension doesn't return a coroutine, so no await needed
             bot.load_extension(f'commands.{filename[:-3]}')
             logger.info(f'Loaded command extension: {filename[:-3]}')
     
     # Load event cogs
     for filename in os.listdir('./events'):
         if filename.endswith('.py'):
+            # bot.load_extension doesn't return a coroutine, so no await needed
             bot.load_extension(f'events.{filename[:-3]}')
             logger.info(f'Loaded event extension: {filename[:-3]}')
     
